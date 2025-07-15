@@ -15,7 +15,9 @@ const ProductCard = ({ product, onViewDetail, isFavorite, onToggleFavorite }) =>
           onClick={() => onToggleFavorite(product.id)}
           aria-label={isFavorite ? "Bỏ yêu thích" : "Yêu thích"}
         >
-          {isFavorite ? "❤️" : "🤍"}
+          {isFavorite ? 
+          "❤️" :
+          "🤍"}
         </button>
       </div>
       <div className="product-info">

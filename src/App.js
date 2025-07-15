@@ -1,24 +1,72 @@
-import React, { useState } from "react";
-import ProductCard from "./components/ProductCard";
-import SearchFilter from "./components/SearchFilter";
+import React, { useState, useEffect } from "react";
 import Favorites from "./pages/Favorites";
-import SuggestionButton from "./components/SuggestionButton";
 import HistoryList from "./pages/HistoryList";
 import Toast from "./components/Toast";
 import Chatbot from "./components/Chatbot";
 import mockProducts from "./data/mockProducts";
 import "./App.css";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import HeroSection from "./components/HeroSection";
+import FeaturesSection from "./components/FeaturesSection";
+import CoursesSection from "./components/CoursesSection";
+import TestimonialsSection from "./components/TestimonialsSection";
+import NewsSection from "./components/NewsSection";
+import FAQSection from "./components/FAQSection";
+import NewsletterSection from "./components/NewsletterSection";
+import Footer from "./components/Footer";
+import { useRef } from "react";
 
-function App() {
+function AppContent() {
   const [favorites, setFavorites] = useState([]);
   const [modalProduct, setModalProduct] = useState(null);
   const [search, setSearch] = useState("");
   const [priceRange, setPriceRange] = useState("all");
-  const [currentPage, setCurrentPage] = useState("home");
   const [viewedIds, setViewedIds] = useState([]);
   const [suggestionProducts, setSuggestionProducts] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
+
+  // Ref cho scroll đến section
+  const coursesRef = useRef(null);
+  const newsRef = useRef(null);
+  const contactRef = useRef(null);
+  const [activeMenu, setActiveMenu] = useState("home");
+
+  const location = useLocation();
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 50);
+    }
+  }, [location.pathname]);
+
+  // Scroll spy logic - chỉ chạy ở trang chủ
+  useEffect(() => {
+    if (location.pathname !== "/") return;
+    
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const coursesTop = coursesRef.current?.offsetTop || 0;
+      const newsTop = newsRef.current?.offsetTop || 0;
+      const contactTop = contactRef.current?.offsetTop || 0;
+      const offset = 80; // navbar height
+      if (window.innerHeight + scrollY >= document.body.offsetHeight - 10) {
+        setActiveMenu("contact");
+      } else if (scrollY + offset < coursesTop) {
+        setActiveMenu("home");
+      } else if (scrollY + offset < newsTop) {
+        setActiveMenu("courses");
+      } else if (scrollY + offset < contactTop) {
+        setActiveMenu("news");
+      } else {
+        setActiveMenu("contact");
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [location.pathname]);
 
   const handleToggleFavorite = (id) => {
     setFavorites((prev) => {
@@ -56,124 +104,94 @@ function App() {
   };
 
   return (
-    <div className="App" style={{ background: "#f7f7fa", minHeight: "100vh" }}>
-      <div style={{ display: "flex", justifyContent: "center", gap: 16, margin: "18px 0 0 0" }}>
-        <button
-          className={currentPage === "home" ? "nav-btn active" : "nav-btn"}
-          onClick={() => setCurrentPage("home")}
-        >
-          Trang chủ
-        </button>
-        <button
-          className={currentPage === "favorites" ? "nav-btn active" : "nav-btn"}
-          onClick={() => setCurrentPage("favorites")}
-        >
-          Yêu thích ({favorites.length})
-        </button>
-        <button
-          className={currentPage === "history" ? "nav-btn active" : "nav-btn"}
-          onClick={() => setCurrentPage("history")}
-        >
-          Lịch sử xem
-        </button>
-      </div>
-      <h1 style={{ textAlign: "center", margin: "18px 0 12px 0", color: "#ff6600" }}>
-        Sàn giáo dục thương mại điện tử
-      </h1>
-      {currentPage === "home" && (
-        <>
-          <SearchFilter
-            search={search}
-            setSearch={setSearch}
-            priceRange={priceRange}
-            setPriceRange={setPriceRange}
-          />
-          <SuggestionButton
-            userId={1}
-            viewedIds={viewedIds}
-            favoriteIds={favorites}
-            onSuggest={handleSuggest}
-          />
-          {suggestionProducts.length > 0 && (
-            <div style={{
-              margin: "0 auto 18px auto",
-              maxWidth: 900,
-              textAlign: "center"
-            }}>
-              <h3 style={{ color: "#ff6600", margin: "10px 0 8px 0" }}>Sản phẩm gợi ý cho bạn</h3>
-              <div style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                gap: "12px"
-              }}>
-                {suggestionProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onViewDetail={handleViewDetail}
-                    isFavorite={favorites.includes(product.id)}
-                    onToggleFavorite={handleToggleFavorite}
-                  />
-                ))}
-              </div>
+    <>
+      <Navbar
+        activeMenu={activeMenu}
+        onScrollToCourses={() => coursesRef.current?.scrollIntoView({ behavior: "smooth" })}
+        onScrollToNews={() => newsRef.current?.scrollIntoView({ behavior: "smooth" })}
+        onScrollToContact={() => contactRef.current?.scrollIntoView({ behavior: "smooth" })}
+      />
+      <Routes>
+        <Route path="/" element={
+          <>
+            <HeroSection />
+            <FeaturesSection />
+            <div ref={coursesRef}>
+              <CoursesSection
+                search={search}
+                setSearch={setSearch}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                suggestionProducts={suggestionProducts}
+                onSuggest={handleSuggest}
+                favorites={favorites}
+                onToggleFavorite={handleToggleFavorite}
+                filteredProducts={filteredProducts}
+                onViewDetail={handleViewDetail}
+              />
             </div>
-          )}
-          <div style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: "12px"
-          }}>
-            {filteredProducts.length === 0 ? (
-              <div style={{ color: "#888", fontSize: 18, marginTop: 32 }}>Không tìm thấy sản phẩm phù hợp.</div>
-            ) : (
-              filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onViewDetail={handleViewDetail}
-                  isFavorite={favorites.includes(product.id)}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              ))
-            )}
-          </div>
-        </>
-      )}
-      {currentPage === "favorites" && (
-        <Favorites
-          favorites={favorites}
-          onToggleFavorite={handleToggleFavorite}
-          onViewDetail={handleViewDetail}
+            <TestimonialsSection />
+            <div ref={newsRef}>
+              <NewsSection />
+            </div>
+            <FAQSection />
+            <div ref={contactRef}>
+              <NewsletterSection />
+            </div>
+            <Footer />
+          </>
+        } />
+        <Route 
+          path="/favorites" 
+          element={
+            <Favorites
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+              onViewDetail={handleViewDetail}
+            />
+          } 
         />
-      )}
-      {currentPage === "history" && (
-        <HistoryList
-          viewedIds={viewedIds}
-          onViewDetail={handleViewDetail}
-          onToggleFavorite={handleToggleFavorite}
-          favorites={favorites}
+        <Route 
+          path="/history" 
+          element={
+            <HistoryList
+              viewedIds={viewedIds}
+              onViewDetail={handleViewDetail}
+              onToggleFavorite={handleToggleFavorite}
+              favorites={favorites}
+            />
+          } 
         />
-      )}
-      {/* Modal chi tiết sản phẩm */}
+      </Routes>
       {modalProduct && (
         <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <img src={modalProduct.image} alt={modalProduct.name} style={{ width: "100%", borderRadius: 8 }} />
-            <h2>{modalProduct.name}</h2>
-            <div style={{ color: "#ff6600", fontWeight: 600, fontSize: 18 }}>
-              {modalProduct.price.toLocaleString("vi-VN")}₫
+          <div className="modal-content modal-detail-flex" onClick={e => e.stopPropagation()}>
+            <div className="modal-detail-img">
+              <img src={modalProduct.image} alt={modalProduct.name} style={{ width: "100%", borderRadius: 12 }} />
             </div>
-            <div style={{ margin: "8px 0" }}>{modalProduct.longDescription}</div>
-            <div>Đánh giá: <b>{modalProduct.rating} ⭐</b></div>
-            <button onClick={handleCloseModal} style={{ marginTop: 16, padding: "8px 18px", borderRadius: 8, background: "#ff6600", color: "#fff", border: "none", fontWeight: 500, cursor: "pointer" }}>Đóng</button>
+            <div className="modal-detail-info">
+              <h2>{modalProduct.name}</h2>
+              <div style={{ color: "#ff6600", fontWeight: 600, fontSize: 18 }}>
+                {modalProduct.price.toLocaleString("vi-VN")}₫
+              </div>
+              <div style={{ margin: "8px 0" }}>{modalProduct.longDescription}</div>
+              <div>Đánh giá: <b>{modalProduct.rating} ⭐</b></div>
+              <button onClick={handleCloseModal} style={{ marginTop: 16, padding: "8px 18px", borderRadius: 8, background: "#ff6600", color: "#fff", border: "none", fontWeight: 500, cursor: "pointer" }}>Đóng</button>
+            </div>
           </div>
         </div>
       )}
       <Toast message={toastMsg} show={showToast} onClose={() => setShowToast(false)} />
       <Chatbot />
-    </div>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

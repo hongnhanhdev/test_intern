@@ -3,12 +3,14 @@ import mockProducts from "../data/mockProducts";
 import "../App.css";
 
 const KEYWORDS = [
-  { key: /tiếng anh|english/i, ids: [1] },
+  { key: /tiếng anh|english/i, ids: [1,2,3,4] },
   { key: /ielts/i, ids: [2] },
-  { key: /python/i, ids: [5] },
-  { key: /toán|math/i, ids: [3] },
-  { key: /nhật|jlpt|japanese/i, ids: [4] },
-  { key: /thuyết trình|presentation/i, ids: [6] },
+  { key: /giao tiếp|cấp tốc/i, ids: [4] },
+  { key: /toeic/i, ids: [3] },
+  { key: /python/i, ids: [7] },
+  { key: /toán|math/i, ids: [5] },
+  { key: /nhật|jlpt|japanese/i, ids: [6] },
+  { key: /thuyết trình|presentation/i, ids: [8] },
 ];
 
 function getAIReply(text) {

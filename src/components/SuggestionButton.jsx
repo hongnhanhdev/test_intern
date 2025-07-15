@@ -25,7 +25,7 @@ const SuggestionButton = ({ userId, viewedIds, favoriteIds, onSuggest }) => {
         disabled={loading}
         className="suggest-btn"
       >
-        {loading ? "Đang gợi ý..." : "Gợi ý sản phẩm phù hợp"}
+        {loading ? "Đang gợi ý..." : "Gợi ý khóa học phù hợp"}
       </button>
       {loading && (
         <div className="skeleton-list">
